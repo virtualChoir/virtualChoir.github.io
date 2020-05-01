@@ -1,0 +1,388 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, minimum-scale=1.0, maximum-scale=2.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <script src="https://code.jquery.com/jquery-3.4.1.slim.min.js"
+        integrity="sha384-J6qa4849blE2+poT4WnyKhv5vZF5SrPo0iEjwBvKU7imGFAV0wwj1yYfoRSJoZ+n"
+        crossorigin="anonymous"></script>
+    <script src="https://cdn.jsdelivr.net/npm/popper.js@1.16.0/dist/umd/popper.min.js"
+        integrity="sha384-Q6E9RHvbIyZFJoft+2mJbHaEWldlvI9IOYy5n3zV9zzTtmI3UksdQRVvoxMfooAo"
+        crossorigin="anonymous"></script>
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.4.1/css/bootstrap.min.css"
+        integrity="sha384-Vkoo8x4CGsO3+Hhxv8T/Q5PaXtkKtu6ug5TOeNV6gBiFeWPGFN9MuhOf23Q9Ifjh" crossorigin="anonymous">
+    <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.4.1/js/bootstrap.min.js"
+        integrity="sha384-wfSDF2E50Y2D1uUdj0O3uMBJnjuUD4Ih7YwaYd1iqfktj0Uod8GCExl3Og8ifwB6"
+        crossorigin="anonymous"></script>
+    <title>Virtual Choir Recorder</title>
+    <style>
+        #countdown {
+            position: absolute;
+            font-size: 10rem;
+            z-index: 10;
+            top: 0;
+            left: 40%;
+            text-align: center;
+        }
+
+        #vidContainer {
+            position: relative;
+        }
+
+        #cam {
+            transform: rotateY(180deg);
+        }
+
+        .progress-choir {
+            display: -ms-flexbox;
+            display: flex;
+            height: 100%;
+            overflow: hidden;
+            font-size: .75rem;
+            background-color: #e9ecef;
+            border-radius: .25rem;
+            width: 1rem;
+            position: relative;
+        }
+
+        .progress-bar-choir {
+            display: -ms-flexbox;
+            display: flex;
+            -ms-flex-direction: column;
+            flex-direction: column;
+            -ms-flex-pack: center;
+            justify-content: center;
+            overflow: hidden;
+            color: #fff;
+            text-align: center;
+            white-space: nowrap;
+            background-color: #007bff;
+            bottom: 0;
+            position: absolute;
+            width: 100%;
+        }
+
+        .mainNav {
+            display: none;
+        }
+
+        .camSmall {
+            position: absolute;
+            top: 0;
+            right: 0;
+            height: 40%;
+        }
+    </style>
+</head>
+
+<body>
+    <div id="page" style="display: none;">
+        <nav class="navbar navbar-expand-lg navbar-light bg-light">
+            <a class="navbar-brand" href=".">Virtual Choir Recorder</a>
+            <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarSupportedContent"
+                aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+
+
+
+            <div class="collapse navbar-collapse" id="navbarSupportedContent">
+                <ul class="navbar-nav mr-auto">
+                    <li class="nav-item">
+                        <a id="btnTutorial" class="nav-link" href="#">Anleitung</a>
+                    </li>
+                    <li class="nav-item initNav">
+                        <a id="btnAudioVideo" class="nav-link" href="#">Audio+Video</a>
+                    </li>
+                    <li class="nav-item initNav">
+                        <a id="btnAudioOnly" class="nav-link" href="#">Nur Audio</a>
+                    </li>
+                    <li class="nav-item dropdown mainNav">
+                        <a class="nav-link dropdown-toggle" href="#" id="navbarcamDropdown" role="button"
+                            data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                            Kamera
+                        </a>
+                        <div class="dropdown-menu" aria-labelledby="navbarcamDropdown" id="camDropdown">
+                        </div>
+                    </li>
+                    <li class="nav-item dropdown mainNav">
+                        <a class="nav-link dropdown-toggle" href="#" id="navbarmicDropdown" role="button"
+                            data-toggle="dropdown" aria-haspopup="true" aria-expanded="false" disabled>
+                            Mikrofon
+                        </a>
+                        <div class="dropdown-menu" aria-labelledby="navbarmicDropdown" id="micDropdown">
+                        </div>
+                    </li>
+                    <li class="nav-item dropdown mainNav">
+                        <a class="nav-link dropdown-toggle" href="#" id="voiceDropdown" role="button"
+                            data-toggle="dropdown" aria-haspopup="true" aria-expanded="false" disabled>
+                            Gesangsstimme
+                        </a>
+                        <div class="dropdown-menu" aria-labelledby="voice" id="voice">
+                        </div>
+                    </li>
+                    </span>
+                </ul>
+            </div>
+        </nav>
+        <div id="initMain" class="container mt-2 ml-2">
+            Virtual Choir Recorder für das Stück <span class="pieceName"></span>.<br>
+            Anleitung und Starten des Programms im Manü (auf Mobilgeräte rechts oben aufklappen).
+        </div>
+        <div id="main" class="container mt-2 ml-2" style="display: none;">
+            <div class="row">
+                <div class="col-5">
+                    <button id="btnSwitchCam" class="btn btn-dark py-1 px-2 m-1" title="Kamera wechseln"
+                        style="display: none; opacity:0;"><svg class="bi bi-arrow-repeat" width="1em" height="1em"
+                            viewBox="0 0 16 16" fill="currentColor" xmlns="http://www.w3.org/2000/svg">
+                            <path fill-rule="evenodd"
+                                d="M2.854 7.146a.5.5 0 00-.708 0l-2 2a.5.5 0 10.708.708L2.5 8.207l1.646 1.647a.5.5 0 00.708-.708l-2-2zm13-1a.5.5 0 00-.708 0L13.5 7.793l-1.646-1.647a.5.5 0 00-.708.708l2 2a.5.5 0 00.708 0l2-2a.5.5 0 000-.708z"
+                                clip-rule="evenodd" />
+                            <path fill-rule="evenodd"
+                                d="M8 3a4.995 4.995 0 00-4.192 2.273.5.5 0 01-.837-.546A6 6 0 0114 8a.5.5 0 01-1.001 0 5 5 0 00-5-5zM2.5 7.5A.5.5 0 013 8a5 5 0 009.192 2.727.5.5 0 11.837.546A6 6 0 012 8a.5.5 0 01.501-.5z"
+                                clip-rule="evenodd" />
+                        </svg></button>
+                    <button id="btnPlayTrack" class="btn btn-dark py-1 px-2 m-1" title="Vorlage abspielen"><svg
+                            class="bi bi-volume-up-fill" width="1em" height="1em" viewBox="0 0 16 16"
+                            fill="currentColor" xmlns="http://www.w3.org/2000/svg">
+                            <path
+                                d="M11.536 14.01A8.473 8.473 0 0014.026 8a8.473 8.473 0 00-2.49-6.01l-.708.707A7.476 7.476 0 0113.025 8c0 2.071-.84 3.946-2.197 5.303l.708.707z" />
+                            <path
+                                d="M10.121 12.596A6.48 6.48 0 0012.025 8a6.48 6.48 0 00-1.904-4.596l-.707.707A5.483 5.483 0 0111.025 8a5.483 5.483 0 01-1.61 3.89l.706.706z" />
+                            <path
+                                d="M8.707 11.182A4.486 4.486 0 0010.025 8a4.486 4.486 0 00-1.318-3.182L8 5.525A3.489 3.489 0 019.025 8 3.49 3.49 0 018 10.475l.707.707z" />
+                            <path fill-rule="evenodd"
+                                d="M6.717 3.55A.5.5 0 017 4v8a.5.5 0 01-.812.39L3.825 10.5H1.5A.5.5 0 011 10V6a.5.5 0 01.5-.5h2.325l2.363-1.89a.5.5 0 01.529-.06z"
+                                clip-rule="evenodd" />
+                        </svg></button>
+                    <button id="btnPlayConductor" class="btn btn-dark py-1 px-2 m-1"
+                        title="Vorlage mit Dirigent abspielen"><svg class="bi bi-collection-play-fill" width="1em"
+                            height="1em" viewBox="0 0 16 16" fill="currentColor" xmlns="http://www.w3.org/2000/svg">
+                            <path fill-rule="evenodd"
+                                d="M1.5 14.5A1.5 1.5 0 010 13V6a1.5 1.5 0 011.5-1.5h13A1.5 1.5 0 0116 6v7a1.5 1.5 0 01-1.5 1.5h-13zm5.265-7.924A.5.5 0 006 7v5a.5.5 0 00.765.424l4-2.5a.5.5 0 000-.848l-4-2.5zM2 3a.5.5 0 00.5.5h11a.5.5 0 000-1h-11A.5.5 0 002 3zm2-2a.5.5 0 00.5.5h7a.5.5 0 000-1h-7A.5.5 0 004 1z"
+                                clip-rule="evenodd" />
+                        </svg></button>
+                    <button id="btnRecord" class="btn btn-dark py-1 px-2 m-1" title="Aufnehmen">
+                        <svg class="bi bi-circle" width="1em" height="1em" viewBox="0 0 16 16" fill="red"
+                            xmlns="http://www.w3.org/2000/svg">
+                            <path fill="red" d="M8 15A7 7 0 108 1a7 7 0 000 14zm0 1A8 8 0 108 0a8 8 0 000 16z"
+                                clip-rule="evenodd" />
+                        </svg>
+                    </button>
+                    <button id="btnStop" class="btn btn-dark py-1 px-2 m-1" title="Aufnahme Beenden"
+                        style="display: none;">
+                        <svg class="bi bi-square-fill" width="1em" height="1em" viewBox="0 0 16 16" fill="currentColor"
+                            xmlns="http://www.w3.org/2000/svg">
+                            <rect width="16" height="16" rx="2" />
+                        </svg>
+                    </button>
+                    <button id="btnCam" class="btn btn-dark py-1 px-2 m-1" title="Zurück zur Kamera"
+                        style="display: none;">
+                        <svg class="bi bi-camera-video-fill" width="1em" height="1em" viewBox="0 0 16 16"
+                            fill="currentColor" xmlns="http://www.w3.org/2000/svg">
+                            <path
+                                d="M2.667 3h6.666C10.253 3 11 3.746 11 4.667v6.666c0 .92-.746 1.667-1.667 1.667H2.667C1.747 13 1 12.254 1 11.333V4.667C1 3.747 1.746 3 2.667 3z" />
+                            <path
+                                d="M7.404 8.697l6.363 3.692c.54.313 1.233-.066 1.233-.697V4.308c0-.63-.693-1.01-1.233-.696L7.404 7.304a.802.802 0 000 1.393z" />
+                        </svg>
+                    </button>
+                    <button id="btnPlayback" class="btn btn-dark py-1 px-2 m-1" title="Aufnahme abspielen"
+                        style="display: none;"><svg class="bi bi-play-fill" width="1em" height="1em" viewBox="4 4 12 12"
+                            fill="currentColor" xmlns="http://www.w3.org/2000/svg">
+                            <path
+                                d="M11.596 8.697l-6.363 3.692c-.54.313-1.233-.066-1.233-.697V4.308c0-.63.692-1.01 1.233-.696l6.363 3.692a.802.802 0 010 1.393z" />
+                        </svg></button>
+                    <button id="btnDownload" class="btn btn-dark py-1 px-2 m-1" title="Aufnahme speichern"
+                        style="display: none;"><svg class="bi bi-download" width="1em" height="1em" viewBox="0 0 16 16"
+                            fill="currentColor" xmlns="http://www.w3.org/2000/svg">
+                            <path fill-rule="evenodd"
+                                d="M.5 8a.5.5 0 01.5.5V12a1 1 0 001 1h12a1 1 0 001-1V8.5a.5.5 0 011 0V12a2 2 0 01-2 2H2a2 2 0 01-2-2V8.5A.5.5 0 01.5 8z"
+                                clip-rule="evenodd" />
+                            <path fill-rule="evenodd"
+                                d="M5 7.5a.5.5 0 01.707 0L8 9.793 10.293 7.5a.5.5 0 11.707.707l-2.646 2.647a.5.5 0 01-.708 0L5 8.207A.5.5 0 015 7.5z"
+                                clip-rule="evenodd" />
+                            <path fill-rule="evenodd" d="M8 1a.5.5 0 01.5.5v8a.5.5 0 01-1 0v-8A.5.5 0 018 1z"
+                                clip-rule="evenodd" />
+                        </svg></button>
+
+                </div>
+                <div class="col-5">
+                    <audio controls style="display: none;"></audio>
+                </div>
+            </div>
+            <div class="row">
+                <div class="col-8">
+                    <div id="vidContainer">
+                        <span id="countdown" style="display: none;">3</span>
+                        <video id="cam" autoplay class="img-fluid"></video>
+                        <video id="conductor" controls class="img-fluid"></video>
+                        <video id="playback" controls class="img-fluid" style="display: none;"></video>
+                    </div>
+                </div>
+                <div class="col-1">
+                    <div class="progress-choir">
+                        <div class="progress-bar-choir bg-success" id="vuMeter" role="progressbar" style="height: 50%">
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <small id="debug">
+
+            </small>
+        </div>
+        <div id="tutorial" class="m-4" style="display: none;">
+            <h2>Anleitung</h2>
+            <h3>(Datenschutz-) Hinweise</h3>
+            Dies ist eine nichtöffenltiche Webseite. Sie wurde erstellt, um es dem Chor zu vereinfachen Aufnahmen für
+            das virtuelle Chorprojekt zu erstellen. Bitte die Adresse, Zugangsdaten und Inhalte nicht ohne Erlaubnis
+            weitergeben. Sollten trotzdem Personen außerhalb des Chors Zugriff erhalten, gilt das gleiche wie für
+            Chormitglieder: Adresse, Zugangsdaten und Inhalte nicht ohne Erlaubnis verwenden/weitergeben.<br>
+            Die komplette Funktion dieser Webseite findet auf Ihrem Gerät statt. Sämtliche Kamera-, Mikrofon- und andere
+            Daten
+            bleiben auf Ihrem Computer/Gerät und werden <b>zu keinem Zeitpunkt</b> an den Server übertragen. Mit dem
+            Neuladen oder Schließen der Webseite werden sämtliche auf zwischengespeicherten Daten verworfen. Wenn Sie
+            die
+            Aufnahme <b>selbst</b> durch Drücken des entsprechenden Knopfes auf ihr Gerät permanent gespecihert haben,
+            hat die Webseite keine Zugriff auf diese Datei. Um sie an das virtuelle Chorprojekt zu übermitteln müssen
+            Sie diese selbst wie unten beschrieben hochladen (solange Sie dies nicht tun befindet sich die Aufnahme
+            ausschließlich auf Ihrem Gerät). Die einzigen Daten, die an den Server übermittelt werden, sind Datum und
+            Uhrzeit, zu der Sie diese Webseite aufgerufen haben.<br>
+            <small>Erlaubnis zur anderweitigen Verwendung als vorgesehen zu erfragen bei <a
+                    href="https://github.com/ModellbahnFreak">ModellbahnFreak</a> auf
+                Github.</small>
+            <h3>Beachten</h3>
+            <ul>
+                <li>Diese Anleitung vollständig lesen, bevor die Schritte ausgefürt werden.</li>
+                <li>Auf Mobilgeräten muss das Menü mittels Klick auf den Knopf mit den drei Strichen oben rechts
+                    ausgeklappt
+                    werden</li>
+                <li>In der folgenden Schritt für Schritt Anleitung ist der jeweis benötigte Knopf abgebildet. Diese
+                    Abbildungen haben <b>keine</b> Funktion.</li>
+
+            </ul>
+            <h3>Schritt für Schritt</h3>
+            <ol>
+                <li>Diese Webseite auf einem Gerät mit angeschlossenem Kopfhörer/Headset und wahlweise Kamera öffnen
+                </li>
+                <li>Überlegen, ob ein Video oder nur der Gesang augenommen werden soll</li>
+                <li>Entsprechend "Video+Audio" oder "Nur Audio" im Menü oben wählen</li>
+                <li>Stimmlage aus dem Menü in der Titelleiste wählen</li>
+                <li>Vorlage ein paar mal anhören.<br>
+                    <!--Entweder inkl. dirigiertem Video (bei guter Internetverbindung):
+                    <button class="btn btn-dark py-1 px-2 m-1" title="Vorlage mit Dirigent abspielen"><svg
+                            class="bi bi-collection-play-fill" width="1em" height="1em" viewBox="0 0 16 16"
+                            fill="currentColor" xmlns="http://www.w3.org/2000/svg">
+                            <path fill-rule="evenodd"
+                                d="M1.5 14.5A1.5 1.5 0 010 13V6a1.5 1.5 0 011.5-1.5h13A1.5 1.5 0 0116 6v7a1.5 1.5 0 01-1.5 1.5h-13zm5.265-7.924A.5.5 0 006 7v5a.5.5 0 00.765.424l4-2.5a.5.5 0 000-.848l-4-2.5zM2 3a.5.5 0 00.5.5h11a.5.5 0 000-1h-11A.5.5 0 002 3zm2-2a.5.5 0 00.5.5h7a.5.5 0 000-1h-7A.5.5 0 004 1z"
+                                clip-rule="evenodd" />
+                        </svg></button>
+                    <br>-->
+                    Die Tonspur:
+                    <button class="btn btn-dark py-1 px-2 m-1" title="Vorlage abspielen"><svg
+                            class="bi bi-volume-up-fill" width="1em" height="1em" viewBox="0 0 16 16"
+                            fill="currentColor" xmlns="http://www.w3.org/2000/svg">
+                            <path
+                                d="M11.536 14.01A8.473 8.473 0 0014.026 8a8.473 8.473 0 00-2.49-6.01l-.708.707A7.476 7.476 0 0113.025 8c0 2.071-.84 3.946-2.197 5.303l.708.707z" />
+                            <path
+                                d="M10.121 12.596A6.48 6.48 0 0012.025 8a6.48 6.48 0 00-1.904-4.596l-.707.707A5.483 5.483 0 0111.025 8a5.483 5.483 0 01-1.61 3.89l.706.706z" />
+                            <path
+                                d="M8.707 11.182A4.486 4.486 0 0010.025 8a4.486 4.486 0 00-1.318-3.182L8 5.525A3.489 3.489 0 019.025 8 3.49 3.49 0 018 10.475l.707.707z" />
+                            <path fill-rule="evenodd"
+                                d="M6.717 3.55A.5.5 0 017 4v8a.5.5 0 01-.812.39L3.825 10.5H1.5A.5.5 0 011 10V6a.5.5 0 01.5-.5h2.325l2.363-1.89a.5.5 0 01.529-.06z"
+                                clip-rule="evenodd" />
+                        </svg></button>
+                </li>
+                <li>Überprüfen, ob gewünschter Bildausschnitt aufgenommen wird (Kamera-Livebild) und ob Ton aufgenommen
+                    wird
+                    (grüner Lautstärkebalken rechts des Bildes verändert bei Geräusch Größe)<br>
+                    Ggf. Kamera/Mikrofon wechseln mittels Auswahl des korrekten Geräts aus dem Menü
+                </li>
+                <li>Aufnahme starten. Vorlage startet nach Countdown automatisch.
+                    <button class="btn btn-dark py-1 px-2 m-1" title="Aufnehmen">
+                        <svg class="bi bi-circle" width="1em" height="1em" viewBox="0 0 16 16" fill="red"
+                            xmlns="http://www.w3.org/2000/svg">
+                            <path fill="red" d="M8 15A7 7 0 108 1a7 7 0 000 14zm0 1A8 8 0 108 0a8 8 0 000 16z"
+                                clip-rule="evenodd" />
+                        </svg>
+                    </button>
+                </li>
+                <li>Eigene Stimme dazu singen</li>
+                <li>Nach Ende des Lieds Aufnahme stoppen
+                    <button class="btn btn-dark py-1 px-2 m-1" title="Aufnahme Beenden">
+                        <svg class="bi bi-square-fill" width="1em" height="1em" viewBox="0 0 16 16" fill="currentColor"
+                            xmlns="http://www.w3.org/2000/svg">
+                            <rect width="16" height="16" rx="2" />
+                        </svg>
+                    </button>
+                </li>
+                <li>Aufnahme abspielen und überprüfen
+                    <button class="btn btn-dark py-1 px-2 m-1" title="Aufnahme abspielen"><svg class="bi bi-play-fill"
+                            width="1em" height="1em" viewBox="4 4 12 12" fill="currentColor"
+                            xmlns="http://www.w3.org/2000/svg">
+                            <path
+                                d="M11.596 8.697l-6.363 3.692c-.54.313-1.233-.066-1.233-.697V4.308c0-.63.692-1.01 1.233-.696l6.363 3.692a.802.802 0 010 1.393z" />
+                        </svg></button>
+                </li>
+                <li>Ggf. Erneut aufnehmen. Dazu zurück zum Aufnahmebildschirm wechseln
+                    <div class="col-2">
+                        <button class="btn btn-dark py-1 px-2 m-1" title="Zurück zur Kamera">
+                            <svg class="bi bi-camera-video-fill" width="1em" height="1em" viewBox="0 0 16 16"
+                                fill="currentColor" xmlns="http://www.w3.org/2000/svg">
+                                <path
+                                    d="M2.667 3h6.666C10.253 3 11 3.746 11 4.667v6.666c0 .92-.746 1.667-1.667 1.667H2.667C1.747 13 1 12.254 1 11.333V4.667C1 3.747 1.746 3 2.667 3z" />
+                                <path
+                                    d="M7.404 8.697l6.363 3.692c.54.313 1.233-.066 1.233-.697V4.308c0-.63-.693-1.01-1.233-.696L7.404 7.304a.802.802 0 000 1.393z" />
+                            </svg>
+                        </button>
+                    </div>
+                    <br>
+                    <b>ACHTUNG:</b> Durch das Starten einer neuen Aufnahme wird die vorherige
+                    verworfen.</li>
+                <li>Aufnahme auf lokales Gerät speichern
+                    <button class="btn btn-dark py-1 px-2 m-1" title="Aufnahme speichern"><svg class="bi bi-download"
+                            width="1em" height="1em" viewBox="0 0 16 16" fill="currentColor"
+                            xmlns="http://www.w3.org/2000/svg">
+                            <path fill-rule="evenodd"
+                                d="M.5 8a.5.5 0 01.5.5V12a1 1 0 001 1h12a1 1 0 001-1V8.5a.5.5 0 011 0V12a2 2 0 01-2 2H2a2 2 0 01-2-2V8.5A.5.5 0 01.5 8z"
+                                clip-rule="evenodd" />
+                            <path fill-rule="evenodd"
+                                d="M5 7.5a.5.5 0 01.707 0L8 9.793 10.293 7.5a.5.5 0 11.707.707l-2.646 2.647a.5.5 0 01-.708 0L5 8.207A.5.5 0 015 7.5z"
+                                clip-rule="evenodd" />
+                            <path fill-rule="evenodd" d="M8 1a.5.5 0 01.5.5v8a.5.5 0 01-1 0v-8A.5.5 0 018 1z"
+                                clip-rule="evenodd" />
+                        </svg></button></li>
+                <li>Aufnahme auf Dropbox hochladen<br>
+                    Links zu den Dropbox-Uploads:
+                    <ul>
+                        <li><a id="uploadSopran">Alle</a></li>
+                        <!--<li><a id="uploadAlt">Alt</a></li>
+                        <li><a id="uploadTenor">Tenor</a></li>
+                        <li><a id="uploadBass">Bass</a></li>-->
+                    </ul>
+                    (Die abgespeicherte Datei liegt höchst wahrscheinlich im Downloads-Ordner des Geräts)
+                </li>
+            </ol>
+        </div>
+
+    </div>
+    <div id="httpsNotice" class="alert alert-warning" style="display: none;">
+        Sie haben die Webseite über eine http-Verbindung aufgerufen. Damit die Webseite korrekt funktioniert muss sie
+        über eine https-Verbindung aufgerufen weden.
+        <a id="httpsLink">Hier klicken um per https zuzugreifen</a>
+    </div>
+    <noscript>
+        <div class="alert alert-error">
+            Ihr Browser unterstützt kein JavaScript oder Javascript ist deaktiviert/geblockt. Damit diese Webseite
+            korrekt funktioniert muss JavaScript aktiviert sein!
+        </div>
+    </noscript>
+
+
+    <script src="settings.js"></script>
+    <script src="vuMeter.js"></script>
+    <script src="record.js"></script>
+</body>
+
+</html>
